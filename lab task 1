@@ -1,0 +1,43 @@
+# Lab 2: Intelligent Agents & the PEAS Framework
+# File Name: lab2_percepts.py
+class ClassroomAgent:
+    def act(self, temp, occupied):
+        """
+        Determines the operating mode based on room temperature and occupancy.
+        Empty room has priority over temperature settings.
+        """
+        # Rule 1: Priority rule - empty room goes to ECO mode
+        if not occupied:
+            return "EC
+        # Rule 2: Temperature rules when room is occupied
+        if temp > 26:
+            return "COOL"
+        if temp < 20:
+            return "WARM"
+        # Rule 3: Comfortable range (between 20°C and 26°C inclusive)
+        return "IDLE"
+if __name__ == "__main__":
+    # Initialize the Smart Classroom Agent
+    agent = ClassroomAgent()
+    # Percept Sequence: [(temp, occupied), ...]
+    percepts = [
+        (29, True),
+        (29, True),
+        (28, True),
+        (26, True),
+        (19, True),
+        (29, False)
+    ]
+
+    # Display Action Trace
+    print("=" * 50)
+    print("      SMART CLASSROOM AGENT - ACTION TRACE")
+    print("=" * 50)
+    print(f"{'Step':<6} | {'Percept (Temp, Occupied)':<26} | {'Target Mode'}")
+    print("-" * 50)
+
+    for step, percept in enumerate(percepts, 1):
+        action = agent.act(*percept)
+        print(f"{step:<6} | {str(percept):<26} | {action}")
+
+    print("=" * 50)
