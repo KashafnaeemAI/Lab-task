@@ -1,0 +1,144 @@
+# Lab 3: Uninformed Search Algorithms
+# File Name: lab3_search.py
+
+from collections import deque
+import heapq
+
+# Graph Representation (A to G Emergency Exit Graph)
+graph = {
+    'A': ['B', 'C'],
+    'B': ['D', 'E'],
+    'C': ['F'],
+    'D': [],
+    'E': ['G'],
+    'F': [],
+    'G': []
+}
+
+# Weighted Graph for UCS (Nodes, Weights)
+weighted_graph = {
+    'A': [('B', 1), ('C', 10)],
+    'B': [('D', 1), ('E', 1)],
+    'C': [('G', 2)],
+    'D': [],
+    'E': [('G', 1)],
+    'F': [],
+    'G': []
+}
+
+# 1. Breadth-First Search (BFS)
+def bfs(start, goal):
+    q = deque([[start]])
+    seen = {start}
+    expansion_order = []
+    
+    while q:
+        path = q.popleft()
+        node = path[-1]
+        expansion_order.append(node)
+        
+        if node == goal:
+            return path, expansion_order
+            
+        for n in graph.get(node, []):
+            if n not in seen:
+                seen.add(n)
+                q.append(path + [n])
+    return None, expansion_order
+
+# 2. Depth-First Search (DFS)
+def dfs(start, goal):
+    stack = [[start]]
+    seen = set()
+    expansion_order = []
+    
+    while stack:
+        path = stack.pop()
+        node = path[-1]
+        
+        if node in seen:
+            continue
+        seen.add(node)
+        expansion_order.append(node)
+        
+        if node == goal:
+            return path, expansion_order
+            
+        for n in reversed(graph.get(node, [])):
+            if n not in seen:
+                stack.append(path + [n])
+    return None, expansion_order
+
+# 3. Depth-Limited Search (DLS)
+def dls(node, goal, depth, path, visited_nodes):
+    visited_nodes.append(node)
+    if node == goal:
+        return path
+    if depth <= 0:
+        return "CUTOFF"
+    
+    cutoff_occurred = False
+    for neighbor in graph.get(node, []):
+        result = dls(neighbor, goal, depth - 1, path + [neighbor], visited_nodes)
+        if result == "CUTOFF":
+            cutoff_occurred = True
+        elif result is not None:
+            return result
+            
+    return "CUTOFF" if cutoff_occurred else None
+
+# 4. Uniform Cost Search (UCS)
+def ucs(start, goal):
+    pq = [(0, [start])] # (cost, path)
+    visited = set()
+    expansion_order = []
+    
+    while pq:
+        cost, path = heapq.heappop(pq)
+        node = path[-1]
+        
+        if node in visited:
+            continue
+        visited.add(node)
+        expansion_order.append((node, cost))
+        
+        if node == goal:
+            return path, cost, expansion_order
+            
+        for neighbor, weight in weighted_graph.get(node, []):
+            if neighbor not in visited:
+                heapq.heappush(pq, (cost + weight, path + [neighbor]))
+    return None, float('inf'), expansion_order
+
+# Execution and Tracing
+if __name__ == "__main__":
+    print("=" * 60)
+    print("         LAB 3: UNINFORMED SEARCH EXPERIMENTS")
+    print("=" * 60)
+    
+    # BFS
+    bfs_path, bfs_exp = bfs('A', 'G')
+    print(f"\n1. BFS Execution:")
+    print(f"   Expansion Order : {bfs_exp}")
+    print(f"   Returned Path   : {' -> '.join(bfs_path)}")
+    
+    # DFS
+    dfs_path, dfs_exp = dfs('A', 'G')
+    print(f"\n2. DFS Execution:")
+    print(f"   Expansion Order : {dfs_exp}")
+    print(f"   Returned Path   : {' -> '.join(dfs_path)}")
+    
+    # DLS Test across Limits 1 to 4
+    print(f"\n3. DLS Execution Across Limits:")
+    for limit in range(1, 5):
+        visited = []
+        res = dls('A', 'G', limit, ['A'], visited)
+        print(f"   Limit {limit}: Result = {res} | Visited = {visited}")
+        
+    # UCS
+    ucs_path, ucs_cost, ucs_exp = ucs('A', 'G')
+    print(f"\n4. UCS Execution (Weighted Graph):")
+    print(f"   Expansion Order : {[x[0] for x in ucs_exp]}")
+    print(f"   Returned Path   : {' -> '.join(ucs_path)}")
+    print(f"   Total Path Cost : {ucs_cost}")
+    print("=" * 60)
